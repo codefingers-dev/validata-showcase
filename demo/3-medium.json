@@ -1,0 +1,10 @@
+﻿{
+  "invoiceNumber": "RE-2025-MEDIUM",
+  "grossAmount": 350.00,
+  "workshopName": "Werkstatt Mueller GmbH",
+  "licensePlate": "H-CD 9012",
+  "lineItems": [
+    {"description": "Ölwechsel (mit Filter)", "category": "LABOR", "quantity": 2.5, "unitPrice": 80.00},
+    {"description": "Bremsbeläge vorne", "category": "PARTS", "quantity": 1, "unitPrice": 85.00}
+  ]
+}

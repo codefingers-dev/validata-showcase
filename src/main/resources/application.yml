@@ -1,0 +1,175 @@
+# application.yml
+spring:
+  application:
+    name: fraudlens-api
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:local}  # ← Default to aws if not set
+
+  # ===== DATABASE (ALL PROFILES) =====
+  datasource:
+    url: ${DB_URL:jdbc:h2:mem:testdb}
+    username: ${DB_USER:sa}
+    password: ${DB_PASSWORD:}
+    driver-class-name: ${DB_DRIVER:org.h2.Driver}
+
+  # ===== JPA / HIBERNATE =====
+  jpa:
+    hibernate:
+      ddl-auto: ${HIBERNATE_DDL_AUTO:create-drop}  # local: create-drop, aws: update
+    show-sql: ${HIBERNATE_SHOW_SQL:false}
+    properties:
+      hibernate:
+        dialect: ${HIBERNATE_DIALECT:org.hibernate.dialect.H2Dialect}
+        format_sql: true
+        jdbc:
+          batch_size: 20
+          fetch_size: 50
+
+  # ===== SERVLET CONFIG =====
+  servlet:
+    multipart:
+      max-file-size: ${MAX_FILE_SIZE:10MB}
+      max-request-size: ${MAX_REQUEST_SIZE:10MB}
+
+# ===== SERVER =====
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /
+
+# ===== OPENAPI / SWAGGER =====
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+
+# ===== LOGGING (DEFAULT) =====
+logging:
+  level:
+    root: ${LOG_LEVEL:INFO}
+    de.codefingers.fraudlens: ${APP_LOG_LEVEL:INFO}
+    org.springframework.web: WARN
+    software.amazon.awssdk: WARN
+
+---
+
+# ===== LOCAL PROFILE =====
+spring:
+  config:
+    activate:
+      on-profile: local
+
+  # Mock database for local development
+  datasource:
+    url: jdbc:h2:mem:testdb
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: create-drop  # Recreate DB on every startup
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        # ✅ ADD THIS - Exclude DTOs from JPA scanning:
+        excluded-orm-types: >
+          de.codefingers.fraudlens.model.dto.InvoiceData
+        orm.lob.non_contextual_creation: true
+
+fraudlens:
+  mode: mock
+
+logging:
+  level:
+    de.codefingers.fraudlens: DEBUG
+    software.amazon.awssdk: WARN
+
+---
+
+# ===== AWS PROFILE =====
+spring:
+  config:
+    activate:
+      on-profile: aws
+
+  # Production database (PostgreSQL on RDS)
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      connection-timeout: 30000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+
+fraudlens:
+  mode: aws
+  ai:
+    model-id: ${BEDROCK_MODEL:anthropic.claude-3-haiku-20240307-v1:0}
+    max-tokens: ${AI_MAX_TOKENS:4096}
+    temperature: ${AI_TEMPERATURE:0.1}
+
+aws:
+  region: ${AWS_REGION:eu-central-1}
+
+logging:
+  level:
+    de.codefingers.fraudlens: INFO
+    software.amazon.awssdk: WARN
+
+---
+
+# ===== ACTUATOR / MONITORING (OPTIONAL) =====
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+
+# ===== SWAGGER/OPENAPI CONFIGURATION =====
+springdoc:
+  swagger-ui:
+    enabled: true
+    path: /swagger-ui.html
+    operations-sorter: method  # Sort by HTTP method
+    tags-sorter: alpha         # Sort tags alphabetically
+    display-request-duration: true
+    doc-expansion: list        # Expand operations by default
+    default-models-expand-depth: 1
+
+  api-docs:
+    path: /v3/api-docs
+    enabled: true
+
+  show-actuator: false
+  use-fqn: false
+
+  # ===== API VERSIONING =====
+  version: "1.0.0"
+  title: "FraudLens API"
+  description: "Kfz-Werkstattrechnungs-Betrugserkennungs-API"
+  terms-of-service: "https://example.com/terms"
+  contact:
+    name: "FraudLens Support"
+    url: "https://example.com"
+    email: "support@example.com"
+  license:
+    name: "Proprietary"
+    url: "https://example.com/license"

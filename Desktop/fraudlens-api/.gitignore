@@ -1,0 +1,68 @@
+# ===== IDE =====
+.idea/
+.vscode/
+*.swp
+*.swo
+*.iml
+
+# ===== Build & Binaries =====
+target/
+*.class
+*.jar
+*.war
+*.ear
+*.zip
+
+# ===== Dependencies =====
+node_modules/
+.m2/
+
+# ===== OS & System =====
+.DS_Store
+Thumbs.db
+Desktop.ini
+.gitconfig
+.ssh/
+.aws/
+.gradle/
+.cache/
+.config/
+
+# ===== Logs & Temp =====
+*.log
+*.tmp
+*.temp
+jmeter.log
+
+# ===== Environment & Secrets =====
+.env
+.env.local
+.env.*.local
+application-local.properties
+application-aws.properties
+
+# ===== IDE Temp Files =====
+*.ipr
+*.iws
+*.idsettings
+.classpath
+.project
+.settings/
+
+# ===== IntelliJ =====
+out/
+*.iml
+.idea/
+
+# ===== VS Code =====
+.vscode/
+*.code-workspace
+
+# ===== MacOS =====
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ===== Windows =====
+Thumbs.db
+Desktop.ini

@@ -1,0 +1,10 @@
+﻿{
+  "invoiceNumber": "RE-2025-FRAUD",
+  "grossAmount": 1500.00,
+  "workshopName": "Verdächtige Werkstatt GmbH",
+  "licensePlate": "H-AB 1234",
+  "lineItems": [
+    {"description": "Ölwechsel (mit Filter)", "category": "LABOR", "quantity": 8.0, "unitPrice": 80.00},
+    {"description": "Bremsbeläge vorne", "category": "PARTS", "quantity": 1, "unitPrice": 450.00}
+  ]
+}

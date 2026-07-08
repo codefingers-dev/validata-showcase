@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FraudLens Review Dashboard</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2c3e50;
+            --danger: #e74c3c;
+            --success: #27ae60;
+            --warning: #f39c12;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+        }
+
+        .navbar {
+            background: linear-gradient(90deg, var(--primary), #34495e);
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .card {
+            border: none;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            border-radius: 8px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .card-header {
+            background: linear-gradient(90deg, var(--primary), #34495e);
+            color: white;
+            border-radius: 8px 8px 0 0;
+            padding: 1.5rem;
+        }
+
+        .badge-pending { background-color: var(--warning); }
+        .badge-approved { background-color: var(--success); }
+        .badge-rejected { background-color: var(--danger); }
+
+        .table-row-pending { background-color: #fff8f0; }
+        .table-row-approved { background-color: #f0fdf4; }
+        .table-row-rejected { background-color: #fef2f2; }
+
+        .risk-score {
+            font-size: 1.5rem;
+            font-weight: bold;
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: inline-block;
+        }
+
+        .risk-score.low { background-color: #d4edda; color: #155724; }
+        .risk-score.medium { background-color: #fff3cd; color: #856404; }
+        .risk-score.high { background-color: #f8d7da; color: #721c24; }
+
+        .stats-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            color: white;
+        }
+
+        .stats-pending { background: linear-gradient(135deg, var(--warning), #f39c12); }
+        .stats-approved { background: linear-gradient(135deg, var(--success), #27ae60); }
+        .stats-rejected { background: linear-gradient(135deg, var(--danger), #e74c3c); }
+
+        .btn-review {
+            transition: all 0.3s;
+        }
+
+        .btn-review:hover {
+            transform: scale(1.05);
+        }
+
+        .filter-btn {
+            transition: all 0.3s;
+        }
+
+        .filter-btn.active {
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation -->
+<nav class="navbar navbar-dark sticky-top">
+    <div class="container-fluid">
+            <span class="navbar-brand mb-0 h1">
+                <i class="fas fa-search-dollar"></i> FraudLens Review Dashboard
+            </span>
+        <span class="navbar-text text-white">
+                <i class="fas fa-user"></i> <span th:text="${user}">Admin</span>
+            </span>
+    </div>
+</nav>
+
+<div class="container-fluid mt-4">
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="stats-card stats-pending">
+                <h3>12</h3>
+                <p><i class="fas fa-hourglass-half"></i> Pending Reviews</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card stats-approved">
+                <h3>45</h3>
+                <p><i class="fas fa-check-circle"></i> Approved</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card stats-rejected">
+                <h3>8</h3>
+                <p><i class="fas fa-times-circle"></i> Rejected</p>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="stats-card" style="background: linear-gradient(135deg, #3498db, #2980b9);">
+                <h3>65</h3>
+                <p><i class="fas fa-chart-line"></i> Total Reviewed</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-primary filter-btn active">All</button>
+                <button type="button" class="btn btn-outline-warning filter-btn">Pending</button>
+                <button type="button" class="btn btn-outline-success filter-btn">Approved</button>
+                <button type="button" class="btn btn-outline-danger filter-btn">Rejected</button>
+            </div>
+            <input type="text" class="form-control mt-3" placeholder="Search by invoice number...">
+        </div>
+    </div>
+
+    <!-- Reviews Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-list"></i> Fraud Analysis Reviews</h5>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                    <tr>
+                        <th><i class="fas fa-receipt"></i> Invoice</th>
+                        <th><i class="fas fa-chart-bar"></i> Risk Score</th>
+                        <th><i class="fas fa-exclamation-triangle"></i> Risk Level</th>
+                        <th><i class="fas fa-building"></i> Workshop</th>
+                        <th><i class="fas fa-clock"></i> Date</th>
+                        <th><i class="fas fa-toggle-on"></i> Status</th>
+                        <th><i class="fas fa-cogs"></i> Action</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <!-- Example Row 1 -->
+                    <tr class="table-row-pending">
+                        <td>RE-2025-12345</td>
+                        <td>
+                            <span class="risk-score medium">45</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-warning">MEDIUM</span>
+                        </td>
+                        <td>Auto Müller GmbH</td>
+                        <td>2025-02-19</td>
+                        <td>
+                            <span class="badge badge-pending">Pending</span>
+                        </td>
+                        <td>
+                            <a href="/reviews/RE-2025-12345" class="btn btn-sm btn-primary btn-review">
+                                <i class="fas fa-eye"></i> Review
+                            </a>
+                        </td>
+                    </tr>
+
+                    <!-- Example Row 2 -->
+                    <tr class="table-row-rejected">
+                        <td>RE-2025-12346</td>
+                        <td>
+                            <span class="risk-score high">78</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-danger">HIGH</span>
+                        </td>
+                        <td>Workshop König</td>
+                        <td>2025-02-18</td>
+                        <td>
+                            <span class="badge badge-rejected">Rejected</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary disabled">
+                                <i class="fas fa-check"></i> Done
+                            </button>
+                        </td>
+                    </tr>
+
+                    <!-- Example Row 3 -->
+                    <tr class="table-row-approved">
+                        <td>RE-2025-12347</td>
+                        <td>
+                            <span class="risk-score low">15</span>
+                        </td>
+                        <td>
+                            <span class="badge badge-success">LOW</span>
+                        </td>
+                        <td>BMW Werkstatt</td>
+                        <td>2025-02-17</td>
+                        <td>
+                            <span class="badge badge-approved">Approved</span>
+                        </td>
+                        <td>
+                            <button class="btn btn-sm btn-secondary disabled">
+                                <i class="fas fa-check"></i> Done
+                            </button>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            <li class="page-item disabled">
+                <a class="page-link" href="#" tabindex="-1">Previous</a>
+            </li>
+            <li class="page-item active"><a class="page-link" href="#">1</a></li>
+            <li class="page-item"><a class="page-link" href="#">2</a></li>
+            <li class="page-item"><a class="page-link" href="#">3</a></li>
+            <li class="page-item">
+                <a class="page-link" href="#">Next</a>
+            </li>
+        </ul>
+    </nav>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Filter functionality
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+        });
+    });
+</script>
+</body>
+</html>

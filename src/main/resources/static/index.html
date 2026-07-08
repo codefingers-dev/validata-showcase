@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FraudLens</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">FraudLens</div>
+            <nav class="nav">
+                <a href="#" class="nav-link active">Analyse</a>
+                <a href="/swagger-ui.html" class="nav-link" target="_blank">API</a>
+            </nav>
+            <div class="status" id="status">
+                <span class="status-dot"></span>
+                Local
+            </div>
+        </header>
+
+        <!-- Main -->
+        <main class="main">
+            <!-- Upload Section -->
+            <section class="section upload-section" id="uploadSection">
+                <div class="section-header">
+                    <h1>Rechnungsanalyse</h1>
+                    <p>Werkstattrechnung auf Betrugsindizien prüfen</p>
+                </div>
+
+                <div class="upload-container">
+                    <div class="upload-area" id="uploadArea">
+                        <div class="upload-content">
+                            <div class="upload-icon">
+                                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <span class="upload-text">PDF oder Bild auswählen</span>
+                            <span class="upload-hint">oder hierher ziehen</span>
+                        </div>
+                        <input type="file" id="fileInput" accept=".pdf,.png,.jpg,.jpeg, .tiff" hidden>
+                    </div>
+
+                    <div class="file-selected" id="fileSelected" style="display: none;">
+                        <div class="file-info">
+                            <span class="file-name" id="fileName"></span>
+                            <span class="file-size" id="fileSize"></span>
+                        </div>
+                        <button class="btn-remove" id="btnRemove">Entfernen</button>
+                    </div>
+
+                    <button class="btn-primary" id="btnAnalyze" disabled>
+                        <span class="btn-label">Analysieren</span>
+                        <span class="btn-spinner"></span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="section results-section" id="resultsSection" style="display: none;">
+                <!-- Score -->
+                <div class="score-container">
+                    <div class="score-ring-wrapper">
+                        <svg class="score-ring" viewBox="0 0 100 100">
+                            <circle class="score-bg" cx="50" cy="50" r="45"/>
+                            <circle class="score-progress" id="scoreProgress" cx="50" cy="50" r="45"/>
+                        </svg>
+                        <div class="score-inner">
+                            <span class="score-value" id="scoreValue">0</span>
+                        </div>
+                    </div>
+                    <div class="score-meta">
+                        <span class="score-level" id="scoreLevel">LOW</span>
+                        <span class="score-recommendation" id="scoreRecommendation">Freigabe empfohlen</span>
+                    </div>
+                </div>
+
+                <!-- Summary -->
+                <div class="card" id="summaryCard">
+                    <div class="card-title">Zusammenfassung</div>
+                    <p class="card-text" id="summaryText"></p>
+                </div>
+
+                <!-- Flags -->
+                <div class="card" id="flagsCard">
+                    <div class="card-title">
+                        Auffälligkeiten
+                        <span class="card-badge" id="flagsCount">0</span>
+                    </div>
+                    <div class="flags-list" id="flagsList"></div>
+                </div>
+
+                <!-- Grid -->
+                <div class="card-grid">
+                    <!-- Validation -->
+                    <div class="card">
+                        <div class="card-title">Validierung</div>
+                        <div class="check-list" id="validationList"></div>
+                    </div>
+
+                    <!-- Data -->
+                    <div class="card">
+                        <div class="card-title">Extrahierte Daten</div>
+                        <div class="data-list" id="dataList"></div>
+                    </div>
+                </div>
+
+                <!-- Meta -->
+                <div class="meta-bar" id="metaBar"></div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/js/app.js"></script>
+</body>
+</html>

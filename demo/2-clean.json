@@ -1,0 +1,10 @@
+﻿{
+  "invoiceNumber": "RE-2025-CLEAN",
+  "grossAmount": 155.00,
+  "workshopName": "Ehrliche Werkstatt GmbH",
+  "licensePlate": "H-XY 5678",
+  "lineItems": [
+    {"description": "Ölwechsel (mit Filter)", "category": "LABOR", "quantity": 1.0, "unitPrice": 80.00},
+    {"description": "Bremsbeläge vorne", "category": "PARTS", "quantity": 1, "unitPrice": 75.00}
+  ]
+}
