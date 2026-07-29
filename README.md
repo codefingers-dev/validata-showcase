@@ -99,7 +99,7 @@ When OCR fails, the system escalates to human review rather than guessing — cr
 | `AnalysisResultBuilderTest` | Builder pattern: success/invalid/fallback/duplicate |
 
 ```bash
-mvn test        # 40 tests, ~1s
+mvn test        # 73 tests 
 ```
 
 ---
