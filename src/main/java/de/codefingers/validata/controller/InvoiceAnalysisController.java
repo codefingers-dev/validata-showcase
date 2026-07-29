@@ -32,17 +32,15 @@ import java.util.UUID;
  */
 @Slf4j
 @RestController
-@Tag(name = "Invoice Analysis v1")
 @RequestMapping("/api/v1/invoices")
 @RequiredArgsConstructor
 @Tag(
         name = "Invoice Analysis",
         description = "Kfz-Werkstattrechnungs-Betrugserkennungs-API\n\n" +
-                "Analysiert Werkstattabrechnungen auf Betrugsmerkmale mit 6 Detection Layers:\n" +
-                "- Layer 1: Bedrock AI (Generalist Analysis)\n" +
-                "- Layer 2: Hallucination Removal\n" +
-                "- Layer 3: Labor Price Validation\n" +
+                "Regelbasierte Analyse mit 5 Detection Layers:\n" +
+                "- Layer 3: Labor Time Validation (DEKRA/TÜV)\n" +
                 "- Layer 4: Parts Price Validation\n" +
+                "- Layer 4: Phantom Work Detection\n" +
                 "- Layer 5: Vehicle History Check\n" +
                 "- Layer 6: Duplication Detection"
 )
@@ -55,15 +53,15 @@ public class InvoiceAnalysisController {
     @PostMapping(value = "/analyze", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(
             summary = "Analysiere Werkstattrechnung (File Upload)",
-            description = "Lädt eine Werkstattrechnung hoch (PDF/Bild), extrahiert Daten mit OCR/Bedrock, " +
-                    "und führt 6-Layer Betrugsanalyse durch.\n\n" +
+            description = "Lädt eine Werkstattrechnung hoch (PDF/Bild), extrahiert Daten mit OCR (AWS Textract), " +
+                    "und führt eine regelbasierte 5-Layer Betrugsanalyse durch.\n\n" +
                     "**Workflow:**\n" +
                     "1. File wird hochgeladen (PDF, PNG, JPEG)\n" +
-                    "2. AWS Textract extrahiert Text\n" +
-                    "3. Bedrock AI analysiert Inhalt (Layer 1)\n" +
-                    "4. 5 weitere Validierungsschichten\n" +
-                    "5. Risk Score 0-100 wird berechnet\n" +
-                    "6. Handlungsempfehlung wird gegeben",
+                    "2. AWS Textract extrahiert Text und Positionen\n" +
+                    "3. 5 regelbasierte Validierungsschichten prüfen die Daten\n" +
+                    "4. Risk Score 0-100 wird berechnet\n" +
+                    "5. Handlungsempfehlung wird gegeben\n\n" +
+                    "Bei fehlgeschlagener Extraktion greift Graceful Degradation (Manuelle Prüfung).",
             tags = {"Invoice Analysis"}
     )
     @ApiResponses(value = {
@@ -121,22 +119,22 @@ public class InvoiceAnalysisController {
         String analysisId = UUID.randomUUID().toString();
 
 
-            // NULL & EMPTY CHECK
-            if (file == null || file.isEmpty()) {
-                log.warn("analyzeInvoice - ID: {}: Datei ist leer", analysisId);
-                return ResponseEntity.badRequest().build();
-            }
+        // NULL & EMPTY CHECK
+        if (file == null || file.isEmpty()) {
+            log.warn("analyzeInvoice - ID: {}: Datei ist leer", analysisId);
+            return ResponseEntity.badRequest().build();
+        }
 
-            log.info("analyzeInvoice - ID: {}, File: {} ({} bytes)",
-                    analysisId, file.getOriginalFilename(), file.getSize());
+        log.info("analyzeInvoice - ID: {}, File: {} ({} bytes)",
+                analysisId, file.getOriginalFilename(), file.getSize());
 
-            FraudAnalysisResult result = orchestrator.analyze(file);
-            InvoiceAnalysisResponse response = InvoiceAnalysisResponse.from(result, analysisId);
+        FraudAnalysisResult result = orchestrator.analyze(file);
+        InvoiceAnalysisResponse response = InvoiceAnalysisResponse.from(result, analysisId);
 
-            log.info("analyzeInvoice - ID: {}: Analyse erfolgreich. Risk Score: {}",
-                    analysisId, result.getRiskScore());
+        log.info("analyzeInvoice - ID: {}: Analyse erfolgreich. Risk Score: {}",
+                analysisId, result.getRiskScore());
 
-            return ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
 
     }
 
@@ -185,22 +183,22 @@ public class InvoiceAnalysisController {
     ) {
         String analysisId = UUID.randomUUID().toString();
 
-            // NULL CHECK
-            if (invoiceData == null) {
-                log.warn("analyzeExtractedData - ID: {}: InvoiceData ist null", analysisId);
-                return ResponseEntity.badRequest().build();
-            }
+        // NULL CHECK
+        if (invoiceData == null) {
+            log.warn("analyzeExtractedData - ID: {}: InvoiceData ist null", analysisId);
+            return ResponseEntity.badRequest().build();
+        }
 
-            log.info("analyzeExtractedData - ID: {}, Invoice: {}",
-                    analysisId, invoiceData.getInvoiceNumber());
+        log.info("analyzeExtractedData - ID: {}, Invoice: {}",
+                analysisId, invoiceData.getInvoiceNumber());
 
-            FraudAnalysisResult result = orchestrator.analyzeExtracted(invoiceData);
-            InvoiceAnalysisResponse response = InvoiceAnalysisResponse.from(result, analysisId);
+        FraudAnalysisResult result = orchestrator.analyzeExtracted(invoiceData);
+        InvoiceAnalysisResponse response = InvoiceAnalysisResponse.from(result, analysisId);
 
-            log.info("analyzeExtractedData - ID: {}: Analyse erfolgreich. Risk Score: {}",
-                    analysisId, result.getRiskScore());
+        log.info("analyzeExtractedData - ID: {}: Analyse erfolgreich. Risk Score: {}",
+                analysisId, result.getRiskScore());
 
-            return ResponseEntity.ok(response);
+        return ResponseEntity.ok(response);
 
     }
 
@@ -218,7 +216,7 @@ public class InvoiceAnalysisController {
     )
     public ResponseEntity<String> healthCheck() {
         log.debug("Health check request");
-        return ResponseEntity.ok("FraudLens API is running");
+        return ResponseEntity.ok("Validata API is running");
     }
 
 
@@ -260,4 +258,19 @@ public class InvoiceAnalysisController {
                         .message("Unerwarteter Fehler: " + e.getMessage())
                         .build());
     }
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ResponseEntity<ErrorResponse> handleUnreadableBody(
+            org.springframework.http.converter.HttpMessageNotReadableException e) {
+        String analysisId = UUID.randomUUID().toString();
+        log.warn("Unlesbarer/leerer Request-Body - ID: {}: {}", analysisId, e.getMessage());
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ErrorResponse.builder()
+                        .analysisId(analysisId)
+                        .status("ERROR")
+                        .errorCode("INVALID_REQUEST_BODY")
+                        .message("Request-Body fehlt oder ist ungültig")
+                        .build());
+    }
+
 }

@@ -1,67 +1,55 @@
 package de.codefingers.validata.model.domain;
 
 /**
- * Analyse-Modi für FraudDetectionOrchestrator
+ * Analyse-Modi für den FraudDetectionOrchestrator.
  *
- * RULES_ONLY:  Nur regelbasierte Checks (Layer 1-6) - AKTUELL!
- * AI_ONLY:     Nur AI-basierte Analyse (Bedrock Claude)
- * HYBRID:      Kombination aus Rules + AI (zukünftig)
+ * Aktueller Production-Modus: RULES_ONLY.
+ * AI_ONLY und HYBRID sind als zukünftige Erweiterungen vorgesehen.
  */
 public enum AnalysisMode {
 
     /**
-     * Pure Rules-Based Detection (v2.0)
+     * Rein regelbasierte Erkennung (v2.0) — aktueller Production-Modus.
      *
-     * LAYERS:
-     * ├─ Layer 1: KfzStandardLaborTimes
-     * ├─ Layer 2: PartsPriceValidator
-     * ├─ Layer 3: PhantomWorkValidator
-     * ├─ Layer 4: VehicleHistoryValidator
-     * ├─ Layer 5: Reserved
-     * └─ Layer 6: InvoiceDuplicationDetector
+     * Detection-Layer:
+     * ├─ Layer 3: KfzStandardLaborTimes (Arbeitszeiten)
+     * ├─ Layer 4: PartsPriceValidator (Ersatzteilpreise)
+     * ├─ Layer 4: PhantomWorkValidator (Phantom-Arbeiten)
+     * ├─ Layer 5: VehicleHistoryValidator (Fahrzeug-Historie)
+     * └─ Layer 6: InvoiceDuplicationDetector (Doppeleinreichungen)
      *
-     * VORTEILE:
-     * ├─ Transparent & nachvollziehbar
-     * ├─ Deterministic (gleiche Input = gleiche Output)
-     * ├─ 10x schneller als AI
-     * └─ 100x günstiger
-     *
-     * AKTUELLE PRODUCTION MODE!
+     * Vorteile:
+     * ├─ Transparent und nachvollziehbar (auditierbar für BaFin/MaRisk)
+     * ├─ Deterministisch (gleiche Eingabe → gleiches Ergebnis)
+     * ├─ Keine Halluzinationen
+     * └─ Keine Kosten pro Anfrage
      */
     RULES_ONLY,
 
     /**
-     * Pure AI-Based Detection (mit Bedrock Claude)
+     * Rein KI-basierte Erkennung (via AWS Bedrock).
      *
-     * VORTEILE:
-     * ├─ Holistisches Denken
-     * ├─ Kann subtile Muster sehen
-     * └─ Weniger Rules zu konfigurieren
+     * Vorteile:  holistische Musterkennung, weniger Regeln zu pflegen.
+     * Nachteile: weniger transparent ("Black Box"), Halluzinationsrisiko,
+     *            Kosten pro Anfrage.
      *
-     * NACHTEILE:
-     * ├─ Weniger transparent
-     * ├─ "Black Box" für Auditors
-     * └─ Teurer (Claude API Kosten)
-     *
-     * STATUS: Zukünftig (nach Hybrid)
+     * Status: Nicht aktiv. Für den Versicherungskontext wurde bewusst
+     *         RULES_ONLY gewählt (Determinismus, Auditierbarkeit).
      */
     AI_ONLY,
 
     /**
-     * Hybrid: Rules + AI Kombination (empfohlen!)
+     * Hybrid: Regeln + KI kombiniert.
      *
-     * FLOW:
-     * 1. Rules laufen (schnell, deterministic)
-     * 2. Claude validiert/erweitert (holistisch)
-     * 3. Beide Ergebnisse kombinieren
+     * Ablauf:
+     * 1. Regeln laufen zuerst (schnell, deterministisch)
+     * 2. KI validiert/erweitert nur bei Bedarf
+     * 3. Ergebnisse werden kombiniert
      *
-     * VORTEILE:
-     * ├─ Bestes von beiden Welten
-     * ├─ Redundanz (Sicherheit)
-     * ├─ Claude kann Rules fehler fangen
-     * └─ Rules schnell, Claude nur bei Bedarf
+     * Vorteile: Redundanz und breitere Abdeckung, ohne die Regel-Basis
+     *           aufzugeben.
      *
-     * STATUS: Zukünftig (nach Production-Ready RULES_ONLY)
+     * Status: Mögliche zukünftige Erweiterung.
      */
     HYBRID
 }
