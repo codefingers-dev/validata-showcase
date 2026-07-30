@@ -25,7 +25,6 @@ public class InvoiceHasher {
      * Berechnet SHA-256 Hash einer Rechnung.
      *
      * Hash wird aus folgenden Feldern berechnet (deterministic):
-     * - invoiceNumber
      * - invoiceDate
      * - licensePlate
      * - grossAmount
@@ -37,8 +36,7 @@ public class InvoiceHasher {
         try {
             // Erstelle String aus kritischen Feldern
             String hashInput = String.format(
-                    "%s|%s|%s|%.2f|%s",
-                    invoice.getInvoiceNumber(),
+                    "%s|%s|%.2f|%s",
                     invoice.getInvoiceDate(),
                     invoice.getLicensePlate(),
                     invoice.getGrossAmount(),
