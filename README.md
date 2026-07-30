@@ -88,7 +88,7 @@ Adding a new fraud rule requires **only** a new class implementing `RuleEngine` 
 
 When OCR fails, the system escalates to human review rather than guessing — critical for insurance, where a wrong auto-approval is worse than a manual check.
 
-**Testing** — 79 tests across unit, mock, and domain-logic layers:
+**Testing** — 88 tests across unit, mock, and domain-logic layers:
 
 | Test Class | Focus |
 |-----------|-------|
@@ -100,6 +100,7 @@ When OCR fails, the system escalates to human review rather than guessing — cr
 | `PartsPriceValidatorTest` | Price validation, boundaries, regex extraction |
 | `PhantomWorkValidatorTest` | Incompatible pairs, unrealistic times, duplicates |
 | `InvoiceAnalysisControllerTest` | MockMvc: endpoints, status codes, error handling |
+| `InvoiceDuplicationDetectorTest` | Duplicate patterns (exact, amount clone), graceful degradation |
 
 ```bash
 mvn test        # 79 tests 
